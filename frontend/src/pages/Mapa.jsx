@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -6,11 +6,30 @@ import { Input } from '../components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { MapPin, Star, Search, Phone, MessageSquare, Navigation } from 'lucide-react';
 import { mockProviders, professionCategories } from '../mock/providersData';
+import InteractiveMap from '../components/InteractiveMap';
 
 const Mapa = () => {
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProvider, setSelectedProvider] = useState(null);
+  const [mapCenter, setMapCenter] = useState({ lat: -17.8814, lng: -51.7144 }); // Jataí, GO
+  const [userLocation, setUserLocation] = useState(null);
+
+  // Detectar localização do usuário
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation({ lat: latitude, lng: longitude });
+          setMapCenter({ lat: latitude, lng: longitude });
+        },
+        (error) => {
+          console.error('Erro ao obter localização:', error);
+        }
+      );
+    }
+  }, []);
 
   const filteredProviders = mockProviders.filter(provider => {
     const matchesSearch = !searchQuery || 
@@ -19,6 +38,32 @@ const Mapa = () => {
     const matchesCategory = selectedCategory === 'Todos' || provider.profession === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const handleMarkerClick = (provider) => {
+    setSelectedProvider(provider);
+    if (provider) {
+      setMapCenter({ lat: provider.lat, lng: provider.lng });
+    }
+  };
+
+  const useMyLocation = () => {
+    if (userLocation) {
+      setMapCenter(userLocation);
+    } else if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const location = { lat: latitude, lng: longitude };
+          setUserLocation(location);
+          setMapCenter(location);
+        },
+        (error) => {
+          alert('Não foi possível obter sua localização. Verifique as permissões do navegador.');
+          console.error('Erro ao obter localização:', error);
+        }
+      );
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 pb-16 md:pb-0">
@@ -42,7 +87,7 @@ const Mapa = () => {
                 className="pl-10 h-11"
               />
             </div>
-            <Button className="bg-green-600 hover:bg-green-700 text-white">
+            <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={useMyLocation}>
               <Navigation className="w-4 h-4 mr-2" />
               Usar minha localização
             </Button>
@@ -65,29 +110,14 @@ const Mapa = () => {
         </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Map Placeholder */}
+          {/* Interactive Map */}
           <Card className="p-0 h-[500px] lg:h-[600px] overflow-hidden">
-            <div className="w-full h-full bg-gradient-to-br from-green-100 to-blue-100 flex items-center justify-center relative">
-              <div className="absolute inset-0 opacity-20">
-                <div className="absolute top-20 left-20 w-32 h-32 bg-green-400 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-20 right-20 w-40 h-40 bg-blue-400 rounded-full blur-3xl"></div>
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-pink-400 rounded-full blur-3xl"></div>
-              </div>
-              <div className="text-center z-10">
-                <MapPin className="w-24 h-24 text-green-600 mx-auto mb-4" />
-                <p className="text-xl font-semibold text-gray-700">Mapa Interativo</p>
-                <p className="text-gray-500 mt-2">Visualize prestadores próximos a você</p>
-                <div className="mt-6 space-y-2">
-                  {filteredProviders.slice(0, 3).map((provider, idx) => (
-                    <div key={provider.id} className="inline-block mx-1">
-                      <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg">
-                        {idx + 1}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <InteractiveMap 
+              providers={filteredProviders}
+              selectedProvider={selectedProvider}
+              onMarkerClick={handleMarkerClick}
+              center={mapCenter}
+            />
           </Card>
 
           {/* Providers List */}
@@ -101,10 +131,13 @@ const Mapa = () => {
             {filteredProviders.map((provider) => (
               <Card 
                 key={provider.id} 
-                className={`p-4 hover:shadow-lg transition-all cursor-pointer ${
-                  selectedProvider?.id === provider.id ? 'border-2 border-green-500' : ''
+                className={`p-4 hover:shadow-lg transition-all cursor-pointer ${ 
+                  selectedProvider?.id === provider.id ? 'border-2 border-green-500 bg-green-50' : ''
                 }`}
-                onClick={() => setSelectedProvider(provider)}
+                onClick={() => {
+                  setSelectedProvider(provider);
+                  setMapCenter({ lat: provider.lat, lng: provider.lng });
+                }}
               >
                 <div className="flex items-start space-x-4">
                   <Avatar className="w-16 h-16 border-2 border-green-200">

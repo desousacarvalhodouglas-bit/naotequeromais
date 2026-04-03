@@ -26,11 +26,30 @@ const NewHome = () => {
     password: '',
     location: '',
     phone: '',
+    avatar: null,
   });
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [userLocation, setUserLocation] = useState('');
+  const [avatarPreview, setAvatarPreview] = useState(null);
+
+  // Handle avatar upload
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5000000) { // 5MB limit
+        setError('Imagem muito grande. Máximo 5MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result);
+        setRegisterData({ ...registerData, avatar: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Detectar localização automaticamente
   useEffect(() => {
@@ -75,10 +94,12 @@ const NewHome = () => {
       email: '', 
       password: '', 
       location: userLocation || 'Jataí, Goiás', 
-      phone: '' 
+      phone: '',
+      avatar: null,
     });
     setAcceptTerms(false);
     setError('');
+    setAvatarPreview(null);
   };
 
   const handleRegister = async () => {
@@ -408,6 +429,32 @@ const NewHome = () => {
                 {error && (
                   <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg mb-4">{error}</div>
                 )}
+
+                {/* Avatar Upload */}
+                <div className="flex justify-center mb-6">
+                  <div className="relative">
+                    <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-gray-200 overflow-hidden flex items-center justify-center">
+                      {avatarPreview ? (
+                        <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-12 h-12 text-gray-400" />
+                      )}
+                    </div>
+                    <label className="absolute bottom-0 right-0 bg-green-600 text-white rounded-full p-2 cursor-pointer hover:bg-green-700 transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleAvatarChange}
+                        className="hidden"
+                      />
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                    </label>
+                  </div>
+                </div>
+                <p className="text-center text-xs text-gray-500 mb-4">Adicione uma foto de perfil (opcional)</p>
 
                 <div className="space-y-4">
                   {accountType === 'particular' && (

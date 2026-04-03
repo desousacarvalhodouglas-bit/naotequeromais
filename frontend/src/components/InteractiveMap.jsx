@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
+import { Loader2 } from 'lucide-react';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyDUxe-HLztnRiQ8mFew15NCs2TWBUJ8Jl0';
 
@@ -15,6 +16,8 @@ const defaultCenter = {
 };
 
 const InteractiveMap = ({ providers, selectedProvider, onMarkerClick, center = defaultCenter }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  
   const mapOptions = {
     zoomControl: true,
     streetViewControl: false,
@@ -24,7 +27,18 @@ const InteractiveMap = ({ providers, selectedProvider, onMarkerClick, center = d
   };
 
   return (
-    <LoadScript googleMapsApiKey={GOOGLE_MAPS_API_KEY}>
+    <LoadScript 
+      googleMapsApiKey={GOOGLE_MAPS_API_KEY}
+      onLoad={() => setIsLoaded(true)}
+      loadingElement={
+        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 text-green-600 animate-spin mx-auto mb-3" />
+            <p className="text-gray-600">Carregando mapa...</p>
+          </div>
+        </div>
+      }
+    >
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         center={center}

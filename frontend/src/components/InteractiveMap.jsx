@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { GoogleMap, LoadScript, Marker, InfoWindow } from '@react-google-maps/api';
 import { Loader2 } from 'lucide-react';
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyDUxe-HLztnRiQ8mFew15NCs2TWBUJ8Jl0';
+const GOOGLE_MAPS_API_KEY = 'AIzaSyC1rsLAluPX1QVAdblELEVf1rFcOXde3DU';
 
 const mapContainerStyle = {
   width: '100%',

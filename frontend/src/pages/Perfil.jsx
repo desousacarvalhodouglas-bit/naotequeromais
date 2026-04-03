@@ -135,7 +135,7 @@ const Perfil = () => {
                   <Card className="p-0 overflow-hidden">
                     <div className="h-64 bg-gray-200 relative">
                       <img 
-                        src={`https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(user?.location || 'Jataí, Goiás')}&zoom=13&size=600x300&markers=color:green|${encodeURIComponent(user?.location || 'Jataí, Goiás')}&key=AIzaSyDUxe-HLztnRiQ8mFew15NCs2TWBUJ8Jl0`}
+                        src={`https://maps.googleapis.com/maps/api/staticmap?center=${encodeURIComponent(user?.location || 'Jataí, Goiás')}&zoom=13&size=600x300&markers=color:green|${encodeURIComponent(user?.location || 'Jataí, Goiás')}&key=AIzaSyC1rsLAluPX1QVAdblELEVf1rFcOXde3DU`}
                         alt="Mapa de localização"
                         className="w-full h-full object-cover"
                       />

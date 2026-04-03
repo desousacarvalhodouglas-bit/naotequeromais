@@ -41,7 +41,7 @@ const NewHome = () => {
           try {
             // Usar Google Maps Geocoding API para obter endereço
             const response = await fetch(
-              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyDUxe-HLztnRiQ8mFew15NCs2TWBUJ8Jl0`
+              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyC1rsLAluPX1QVAdblELEVf1rFcOXde3DU`
             );
             const data = await response.json();
             if (data.results && data.results[0]) {
@@ -207,7 +207,7 @@ const NewHome = () => {
                 <Search className="w-5 h-5 mr-2" />
                 Preciso de um serviço
               </Button>
-              <Button onClick={() => navigate('/offreurs')} variant="outline" className="border-2 border-green-500 text-green-600 hover:bg-green-50 h-14 px-8 text-base">
+              <Button onClick={() => navigate('/abonamento')} variant="outline" className="border-2 border-green-500 text-green-600 hover:bg-green-50 h-14 px-8 text-base">
                 <Wrench className="w-5 h-5 mr-2" />
                 Busco emprego em Goiás
               </Button>

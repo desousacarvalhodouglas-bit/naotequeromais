@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '../components/ui/dialog';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Search, Wrench, ArrowLeft, Loader2, Building2, User, Briefcase, Eye, EyeOff } from 'lucide-react';
+import { Search, Wrench, ArrowLeft, Loader2, Building2, User, Briefcase, Eye, EyeOff, MapPin } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const NewHome = () => {
@@ -30,11 +30,53 @@ const NewHome = () => {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [userLocation, setUserLocation] = useState('');
+
+  // Detectar localização automaticamente
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            // Usar Google Maps Geocoding API para obter endereço
+            const response = await fetch(
+              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyDUxe-HLztnRiQ8mFew15NCs2TWBUJ8Jl0`
+            );
+            const data = await response.json();
+            if (data.results && data.results[0]) {
+              const address = data.results[0].formatted_address;
+              setUserLocation(address);
+              setRegisterData(prev => ({ ...prev, location: address }));
+            }
+          } catch (err) {
+            console.error('Erro ao obter localização:', err);
+            setUserLocation('Jataí, Goiás');
+          }
+        },
+        (error) => {
+          console.error('Erro ao obter geolocalização:', error);
+          setUserLocation('Jataí, Goiás');
+        }
+      );
+    } else {
+      setUserLocation('Jataí, Goiás');
+    }
+  }, []);
 
   const resetRegister = () => {
     setStep(1);
     setAccountType('');
-    setRegisterData({ name: '', lastName: '', commercialName: '', profession: '', email: '', password: '', location: '', phone: '' });
+    setRegisterData({ 
+      name: '', 
+      lastName: '', 
+      commercialName: '', 
+      profession: '', 
+      email: '', 
+      password: '', 
+      location: userLocation || 'Jataí, Goiás', 
+      phone: '' 
+    });
     setAcceptTerms(false);
     setError('');
   };
@@ -149,13 +191,17 @@ const NewHome = () => {
               </div>
             </div>
             <h1 className="text-4xl sm:text-5xl font-bold mb-6">
-              Prestação de serviços
+              Conectando profissionais
               <br />
-              <span className="text-green-600">entre vizinhos</span>
+              <span className="text-green-600">em Jataí e Goiás</span>
             </h1>
-            <p className="text-lg text-gray-600 mb-8">
-              Milhares de pessoas e profissionais perto de você prontos para ajudar
+            <p className="text-lg text-gray-600 mb-4">
+              A maior plataforma de serviços e empregos de Goiás
             </p>
+            <div className="flex items-center space-x-2 mb-8 text-sm text-gray-600">
+              <MapPin className="w-5 h-5 text-green-600" />
+              <span>Atuando em Jataí, Rio Verde, Goiânia e toda região goiana</span>
+            </div>
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
               <Button onClick={() => { setShowCreateAccount(true); resetRegister(); }} className="bg-gray-900 hover:bg-gray-800 text-white h-14 px-8 text-base">
                 <Search className="w-5 h-5 mr-2" />
@@ -163,13 +209,85 @@ const NewHome = () => {
               </Button>
               <Button onClick={() => { setShowCreateAccount(true); resetRegister(); }} variant="outline" className="border-2 border-green-500 text-green-600 hover:bg-green-50 h-14 px-8 text-base">
                 <Wrench className="w-5 h-5 mr-2" />
-                Quero oferecer serviços
+                Busco emprego em Goiás
               </Button>
+            </div>
+            
+            {/* Regional Stats */}
+            <div className="grid grid-cols-3 gap-4 mt-8">
+              <div className="text-center">
+                <p className="text-3xl font-bold text-green-600">5.000+</p>
+                <p className="text-sm text-gray-600">Profissionais em Goiás</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-bold text-green-600">850+</p>
+                <p className="text-sm text-gray-600">Vagas em Jataí</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-bold text-green-600">12k+</p>
+                <p className="text-sm text-gray-600">Serviços realizados</p>
+              </div>
             </div>
           </div>
           <div className="relative">
             <div className="rounded-2xl overflow-hidden shadow-2xl">
               <img src="https://images.unsplash.com/photo-1555955207-cf6fba0f1f57?w=1200&h=800&fit=crop&q=90" alt="Vizinhos ajudando em serviços" className="w-full h-[500px] object-cover" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Goiás Region Section */}
+      <div className="bg-white py-12">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Por que escolher o ServiVizinhos em Goiás?</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Somos a ponte entre quem precisa de serviços e profissionais qualificados em todo estado de Goiás
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center p-6">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MapPin className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="font-bold text-lg mb-2">Cobertura Regional</h3>
+              <p className="text-gray-600 text-sm">
+                Jataí, Rio Verde, Goiânia, Anápolis, Aparecida de Goiânia e mais de 50 cidades goianas
+              </p>
+            </div>
+            
+            <div className="text-center p-6">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Briefcase className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="font-bold text-lg mb-2">Empregos Locais</h3>
+              <p className="text-gray-600 text-sm">
+                Vagas específicas para a região do sudoeste goiano, conectando empresas locais com talentos
+              </p>
+            </div>
+            
+            <div className="text-center p-6">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <User className="w-8 h-8 text-green-600" />
+              </div>
+              <h3 className="font-bold text-lg mb-2">Comunidade Ativa</h3>
+              <p className="text-gray-600 text-sm">
+                Milhares de goianos já confiam no ServiVizinhos para encontrar serviços e oportunidades
+              </p>
+            </div>
+          </div>
+          
+          {/* Cities Coverage */}
+          <div className="mt-12 bg-gray-50 rounded-xl p-8">
+            <h3 className="text-xl font-bold text-center mb-6">Principais cidades atendidas</h3>
+            <div className="flex flex-wrap justify-center gap-3">
+              {['Jataí', 'Rio Verde', 'Goiânia', 'Anápolis', 'Aparecida de Goiânia', 'Catalão', 'Itumbiara', 'Luziânia', 'Formosa', 'Mineiros', 'Senador Canedo', 'Trindade'].map(city => (
+                <span key={city} className="px-4 py-2 bg-white rounded-full text-sm font-medium text-gray-700 border border-gray-200">
+                  {city}
+                </span>
+              ))}
             </div>
           </div>
         </div>
@@ -208,12 +326,17 @@ const NewHome = () => {
       {/* Bottom CTA */}
       <div className="bg-green-500 py-8">
         <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between">
-          <p className="text-white text-lg font-medium mb-4 md:mb-0">
-            Conecte-se para aproveitar ao máximo o ServiVizinhos
-          </p>
+          <div className="mb-4 md:mb-0">
+            <p className="text-white text-lg font-medium mb-1">
+              Junte-se aos milhares de goianos no ServiVizinhos
+            </p>
+            <p className="text-green-50 text-sm">
+              {userLocation ? `📍 Sua localização: ${userLocation}` : 'Encontre serviços e empregos perto de você'}
+            </p>
+          </div>
           <div className="flex items-center space-x-4">
             <Button onClick={() => { setShowCreateAccount(true); resetRegister(); }} className="bg-white text-green-600 hover:bg-gray-100 px-8">
-              Cadastrar-se
+              Cadastrar-se Grátis
             </Button>
             <button onClick={() => { setShowLogin(true); setError(''); }} className="text-white underline hover:no-underline">
               Já tem conta? Entrar

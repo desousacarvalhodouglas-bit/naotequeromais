@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { ArrowLeft, MapPin, CreditCard, Smartphone, Check, Copy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { QRCodeSVG } from 'qrcode.react';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -68,22 +69,17 @@ const Abonamento = () => {
   };
 
   const handleFinalize = async () => {
-    // Gerar chave PIX (backend usará johnsonbaby45@hotmail.com)
     setShowPaymentModal(true);
     
     try {
-      // Simular chamada ao backend para gerar pagamento PIX
-      const response = await axios.post(`${BACKEND_URL}/api/payments/generate-pix`, {
-        amount: currentPlan.price,
-        planId: selectedPlan,
-        customerEmail: 'cliente@exemplo.com' // Email do cliente logado
-      });
-      
-      // Backend retornará a chave PIX codificada (sem expor o email real)
-      setPixKey(response.data.pixKey || '00020126580014BR.GOV.BCB.PIX0136johnsonbaby45@hotmail.com52040000530398654041.005802BR5925SERVIVIZINHOS LTDA6009SAO PAULO62070503***63041D3A');
+      // Gerar chave PIX copia e cola (mock para demonstração)
+      // Em produção, isso viria do backend
+      const pixPayload = `00020126580014BR.GOV.BCB.PIX0136johnsonbaby45@hotmail.com5204000053039865802BR5925SERVIVIZINHOS LTDA6009SAO PAULO62070503***63041D3A`;
+      setPixKey(pixPayload);
     } catch (error) {
-      // Mock para demonstração
-      setPixKey('00020126580014BR.GOV.BCB.PIX0136' + btoa('johnsonbaby45@hotmail.com').substring(0, 20) + '52040000530398654041.005802BR5925SERVIVIZINHOS LTDA6009SAO PAULO62070503***63041D3A');
+      console.error('Erro ao gerar PIX:', error);
+      // Fallback com chave PIX simples
+      setPixKey('johnsonbaby45@hotmail.com');
     }
   };
 
@@ -328,33 +324,52 @@ const Abonamento = () => {
 
               <TabsContent value="pix" className="space-y-3">
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="w-48 h-48 bg-white mx-auto mb-3 rounded-lg flex items-center justify-center border-2">
-                    <div className="text-center">
-                      <div className="w-40 h-40 bg-gray-200 mx-auto mb-2 flex items-center justify-center">
-                        <span className="text-xs text-gray-500">QR Code PIX</span>
+                  <div className="w-48 h-48 bg-white mx-auto mb-3 rounded-lg flex items-center justify-center border-2 border-gray-200 p-2">
+                    {pixKey ? (
+                      <QRCodeSVG 
+                        value={pixKey} 
+                        size={176}
+                        level="M"
+                        includeMargin={false}
+                      />
+                    ) : (
+                      <div className="text-center">
+                        <span className="text-xs text-gray-500">Gerando QR Code...</span>
                       </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-600 text-center mb-2 font-medium">
+                    Escaneie o código QR ou copie a chave PIX abaixo
+                  </p>
+                  <div className="bg-white p-3 rounded-lg mb-2">
+                    <p className="text-xs text-gray-500 mb-1">Chave PIX (Email):</p>
+                    <div className="flex space-x-2">
+                      <Input
+                        value={pixKey || 'johnsonbaby45@hotmail.com'}
+                        readOnly
+                        className="text-xs flex-1 font-mono"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={copyPixKey}
+                        className="px-3"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-600 text-center mb-2">
-                    Escaneie o código ou copie a chave abaixo
-                  </p>
-                  <div className="flex space-x-2">
-                    <Input
-                      value={pixKey}
-                      readOnly
-                      className="text-xs flex-1"
-                    />
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={copyPixKey}
-                      className="px-3"
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
+                  <div className="bg-blue-50 p-3 rounded-lg text-xs text-blue-700">
+                    <p className="font-semibold mb-1">📱 Como pagar:</p>
+                    <ol className="list-decimal list-inside space-y-1 text-xs">
+                      <li>Abra o app do seu banco</li>
+                      <li>Escolha pagar com PIX</li>
+                      <li>Escaneie o QR Code ou cole a chave</li>
+                      <li>Confirme o pagamento de R$ {currentPlan.price.toFixed(2)}</li>
+                    </ol>
                   </div>
-                  <p className="text-xs text-green-600 mt-2 text-center">
-                    ✓ Pagamento seguro processado automaticamente
+                  <p className="text-xs text-green-600 mt-3 text-center font-medium">
+                    ✓ Pagamento confirmado automaticamente em até 5 minutos
                   </p>
                 </div>
               </TabsContent>

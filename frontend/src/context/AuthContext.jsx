@@ -27,36 +27,34 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = async (email, password) => {
-    // Mock login for frontend-only demo
-    const mockUser = {
-      id: '1',
-      name: email.split('@')[0],
-      email: email,
-      location: 'São Paulo, SP',
-      avatar: 'https://i.pravatar.cc/150?img=68'
-    };
-    localStorage.setItem('token', 'mock-token-' + Date.now());
-    localStorage.setItem('user', JSON.stringify(mockUser));
-    setToken('mock-token');
-    setUser(mockUser);
-    return mockUser;
+    // Real API call
+    const res = await api.post('/auth/login', null, {
+      params: { email, password }
+    });
+    const { access_token, user: userData } = res.data;
+    localStorage.setItem('token', access_token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    setToken(access_token);
+    setUser(userData);
+    return userData;
   };
 
   const register = async ({ name, email, password, location, phone }) => {
-    // Mock registration for frontend-only demo
-    const mockUser = {
-      id: '1',
-      name: name,
-      email: email,
+    // Real API call
+    const res = await api.post('/auth/register', {
+      name,
+      email,
+      password,
       location: location || 'Brasil',
-      phone: phone,
-      avatar: 'https://i.pravatar.cc/150?img=68'
-    };
-    localStorage.setItem('token', 'mock-token-' + Date.now());
-    localStorage.setItem('user', JSON.stringify(mockUser));
-    setToken('mock-token');
-    setUser(mockUser);
-    return mockUser;
+      phone,
+      account_type: 'particular'
+    });
+    const { access_token, user: userData } = res.data;
+    localStorage.setItem('token', access_token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    setToken(access_token);
+    setUser(userData);
+    return userData;
   };
 
   const logout = () => {

@@ -101,3 +101,110 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Testar backend do ServiVizinhos com endpoints específicos: health check, registro, login, criar post, listar posts, curtir post e recomendar post"
+
+backend:
+  - task: "Health Check API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Health check endpoint GET /api/ working correctly, returns expected message 'ServiVizinhos API is running'"
+
+  - task: "User Registration"
+    implemented: true
+    working: true
+    file: "/app/backend/routers/auth.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "User registration POST /api/auth/register working correctly, creates user and returns access_token and user data"
+
+  - task: "User Login"
+    implemented: true
+    working: true
+    file: "/app/backend/routers/auth.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "User login POST /api/auth/login working correctly with query parameters, returns access_token and user data"
+
+  - task: "Create Post"
+    implemented: true
+    working: true
+    file: "/app/backend/routers/posts.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Create post POST /api/posts working correctly with authentication, creates post and returns post data with ID. Fixed missing db variable in function."
+
+  - task: "List Posts"
+    implemented: true
+    working: true
+    file: "/app/backend/routers/posts.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "List posts GET /api/posts working correctly with authentication, returns array of posts"
+
+  - task: "Like Post"
+    implemented: true
+    working: true
+    file: "/app/backend/routers/posts.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Like post POST /api/posts/{post_id}/like working correctly, toggles like status and returns liked: true/false and likes count"
+
+  - task: "Recommend Post"
+    implemented: true
+    working: true
+    file: "/app/backend/routers/posts.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Recommend post POST /api/posts/{post_id}/recommend working correctly, toggles recommend status and returns recommended: true/false and recommends count"
+
+frontend:
+  # No frontend testing requested
+
+metadata:
+  created_by: "testing_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "All backend endpoints tested successfully"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "testing"
+    message: "Completed comprehensive backend API testing for ServiVizinhos. All 7 endpoints tested successfully: health check, user registration, user login, create post, list posts, like post, and recommend post. Fixed critical bug in posts.py where db variable was missing in multiple functions. All tests passing with proper authentication flow and data validation."

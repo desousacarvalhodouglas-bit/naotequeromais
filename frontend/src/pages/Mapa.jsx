@@ -2,24 +2,21 @@ import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
-import { MapPin, Star, Search, Phone, MessageSquare, Navigation, Loader2, MapPinned } from 'lucide-react';
-import { mockProviders, professionCategories } from '../mock/providersData';
+import { Star } from 'lucide-react';
+import { mockProviders } from '../mock/providersData';
 import InteractiveMap from '../components/InteractiveMap';
 
 const Mapa = () => {
+  const [activeTab, setActiveTab] = useState('todos');
   const [selectedCategory, setSelectedCategory] = useState('Todos');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [radius, setRadius] = useState(10);
+  const [mapCenter, setMapCenter] = useState({ lat: -17.8814, lng: -51.7144 });
   const [selectedProvider, setSelectedProvider] = useState(null);
-  const [mapCenter, setMapCenter] = useState({ lat: -17.8814, lng: -51.7144 }); // Jataí, GO
   const [userLocation, setUserLocation] = useState(null);
-  const [showLocationModal, setShowLocationModal] = useState(false);
-  const [locationInput, setLocationInput] = useState('');
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
 
-  // Detectar localização do usuário
+  const categories = ['Todos', 'Eletricista', 'Encanador', 'Pintor', 'Marceneiro', 'Professor', 'Diarista', 'Jardineiro'];
+
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -28,20 +25,14 @@ const Mapa = () => {
           setUserLocation({ lat: latitude, lng: longitude });
           setMapCenter({ lat: latitude, lng: longitude });
         },
-        (error) => {
-          console.error('Erro ao obter localização:', error);
-        }
+        (error) => console.error('Erro ao obter localização:', error)
       );
     }
   }, []);
 
-  const filteredProviders = mockProviders.filter(provider => {
-    const matchesSearch = !searchQuery || 
-      provider.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      provider.profession.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'Todos' || provider.profession === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredProviders = mockProviders.filter(provider => 
+    selectedCategory === 'Todos' || provider.profession === selectedCategory
+  );
 
   const handleMarkerClick = (provider) => {
     setSelectedProvider(provider);
@@ -50,305 +41,174 @@ const Mapa = () => {
     }
   };
 
-  const useMyLocation = () => {
-    setIsGettingLocation(true);
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          const location = { lat: latitude, lng: longitude };
-          setUserLocation(location);
-          setMapCenter(location);
-          
-          // Get address from coordinates
-          try {
-            const response = await fetch(
-              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyDUxe-HLztnRiQ8mFew15NCs2TWBUJ8Jl0`
-            );
-            const data = await response.json();
-            if (data.results && data.results[0]) {
-              setLocationInput(data.results[0].formatted_address);
-            }
-          } catch (err) {
-            console.error('Erro ao obter endereço:', err);
-          }
-          
-          setIsGettingLocation(false);
-          alert('✓ Localização atualizada com sucesso!');
-        },
-        (error) => {
-          setIsGettingLocation(false);
-          alert('Não foi possível obter sua localização. Verifique as permissões do navegador.');
-          console.error('Erro ao obter localização:', error);
-        }
-      );
+  const handleUpdateLocation = () => {
+    if (userLocation) {
+      setMapCenter(userLocation);
+      alert('✓ Localização atualizada!');
     } else {
-      setIsGettingLocation(false);
-      alert('Seu navegador não suporta geolocalização.');
-    }
-  };
-
-  const handleSaveLocation = async () => {
-    if (!locationInput.trim()) {
-      alert('Por favor, insira um endereço.');
-      return;
-    }
-    
-    // Geocode the address to get coordinates
-    try {
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(locationInput)}&key=AIzaSyDUxe-HLztnRiQ8mFew15NCs2TWBUJ8Jl0`
-      );
-      const data = await response.json();
-      
-      if (data.results && data.results[0]) {
-        const { lat, lng } = data.results[0].geometry.location;
-        setUserLocation({ lat, lng });
-        setMapCenter({ lat, lng });
-        setShowLocationModal(false);
-        alert('✓ Localização salva com sucesso!');
-      } else {
-        alert('Endereço não encontrado. Tente outro.');
-      }
-    } catch (err) {
-      console.error('Erro ao geocodificar endereço:', err);
-      alert('Erro ao buscar localização. Tente novamente.');
+      alert('Permita o acesso à sua localização');
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16 md:pb-0">
+    <div className="min-h-screen bg-white">
       <Header />
-
+      
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Mapa de Prestadores</h1>
-          <p className="text-gray-600">Encontre profissionais perto de você</p>
+        {/* Title and Location Button */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold">Prestadores Próximos</h1>
+          <Button 
+            className="bg-pink-500 hover:bg-pink-600 text-white rounded-full px-6"
+            onClick={handleUpdateLocation}
+          >
+            📍 Minha Localização
+          </Button>
         </div>
 
-        {/* Search and Filters */}
-        <Card className="p-4 mb-6">
-          <div className="flex flex-col md:flex-row gap-4 mb-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-              <Input
-                placeholder="Buscar profissional..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-11"
-              />
-            </div>
-            <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={useMyLocation} disabled={isGettingLocation}>
-              {isGettingLocation ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Obtendo...
-                </>
-              ) : (
-                <>
-                  <Navigation className="w-4 h-4 mr-2" />
-                  Usar minha localização
-                </>
-              )}
-            </Button>
-            <Button variant="outline" onClick={() => setShowLocationModal(true)}>
-              <MapPinned className="w-4 h-4 mr-2" />
-              Adicionar endereço
-            </Button>
-          </div>
-          
-          {/* Categories */}
-          <div className="flex flex-wrap gap-2">
-            {professionCategories.map(category => (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(category)}
-                className={selectedCategory === category ? "bg-green-600 hover:bg-green-700" : ""}
-              >
-                {category}
-              </Button>
-            ))}
-          </div>
+        {/* Tabs */}
+        <div className="flex space-x-2 mb-4 border-b">
+          <button
+            onClick={() => setActiveTab('todos')}
+            className={`px-6 py-2 font-medium rounded-t-lg ${
+              activeTab === 'todos' 
+                ? 'bg-pink-500 text-white' 
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            Todos
+          </button>
+          <button
+            onClick={() => setActiveTab('prestadores')}
+            className={`px-6 py-2 font-medium rounded-t-lg ${
+              activeTab === 'prestadores' 
+                ? 'bg-pink-500 text-white' 
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            Prestadores ({filteredProviders.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('locais')}
+            className={`px-6 py-2 font-medium rounded-t-lg ${
+              activeTab === 'locais' 
+                ? 'bg-pink-500 text-white' 
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            Locais
+          </button>
+        </div>
+
+        {/* Categories */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {categories.map(category => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                selectedCategory === category
+                  ? 'bg-green-500 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+
+        {/* Radius Filter */}
+        <div className="flex items-center space-x-3 mb-6">
+          <span className="text-sm text-gray-600">Raio:</span>
+          <select 
+            value={radius}
+            onChange={(e) => setRadius(Number(e.target.value))}
+            className="border border-gray-300 rounded px-3 py-1.5 text-sm"
+          >
+            <option value={5}>5 km</option>
+            <option value={10}>10 km</option>
+            <option value={20}>20 km</option>
+            <option value={50}>50 km</option>
+            <option value={100}>100 km</option>
+          </select>
+          <Button 
+            size="sm"
+            variant="outline"
+            onClick={handleUpdateLocation}
+            className="border-gray-300"
+          >
+            📍 Atualizar
+          </Button>
+        </div>
+
+        {/* Map */}
+        <Card className="mb-6 overflow-hidden" style={{ height: '500px' }}>
+          <InteractiveMap 
+            providers={filteredProviders}
+            selectedProvider={selectedProvider}
+            onMarkerClick={handleMarkerClick}
+            center={mapCenter}
+          />
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Interactive Map - 2/3 width */}
-          <Card className="lg:col-span-2 p-0 h-[600px] overflow-hidden">
-            <InteractiveMap 
-              providers={filteredProviders}
-              selectedProvider={selectedProvider}
-              onMarkerClick={handleMarkerClick}
-              center={mapCenter}
-            />
-          </Card>
+        {/* Provider Count */}
+        <p className="text-gray-600 mb-4">
+          <strong>{filteredProviders.length}</strong> prestadores encontrados
+        </p>
 
-          {/* Providers List - 1/3 width */}
-          <div className="space-y-4 h-[600px] overflow-y-auto">
-            <div className="mb-4">
-              <p className="text-gray-600">
-                <span className="font-semibold">{filteredProviders.length}</span> prestadores encontrados
-              </p>
-            </div>
-
-            {filteredProviders.map((provider) => (
-              <Card 
-                key={provider.id} 
-                className={`p-4 hover:shadow-lg transition-all cursor-pointer ${ 
-                  selectedProvider?.id === provider.id ? 'border-2 border-green-500 bg-green-50' : ''
-                }`}
-                onClick={() => {
-                  setSelectedProvider(provider);
-                  setMapCenter({ lat: provider.lat, lng: provider.lng });
-                }}
-              >
-                <div className="flex items-start space-x-4">
-                  <Avatar className="w-16 h-16 border-2 border-green-200">
+        {/* Providers List - Grid Below Map */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredProviders.map((provider) => (
+            <Card 
+              key={provider.id}
+              className={`p-0 overflow-hidden hover:shadow-lg transition-all cursor-pointer ${
+                selectedProvider?.id === provider.id ? 'ring-2 ring-green-500' : ''
+              }`}
+              onClick={() => {
+                setSelectedProvider(provider);
+                setMapCenter({ lat: provider.lat, lng: provider.lng });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            >
+              <div className="p-4">
+                {/* Avatar and Name */}
+                <div className="flex items-center space-x-3 mb-3">
+                  <Avatar className="w-16 h-16 border-2 border-gray-200">
                     <AvatarImage src={provider.avatar} alt={provider.name} />
                     <AvatarFallback>{provider.name.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  
                   <div className="flex-1">
-                    <div className="flex items-start justify-between mb-1">
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900">{provider.name}</h3>
-                        <p className="text-sm text-gray-600">{provider.profession}</p>
-                      </div>
-                      <div className="flex items-center space-x-1 bg-yellow-50 px-2 py-1 rounded">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm font-semibold">{provider.rating}</span>
-                        <span className="text-xs text-gray-500">({provider.reviews})</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center text-sm text-gray-600 mt-2 mb-3">
-                      <MapPin className="w-4 h-4 mr-1 text-green-600" />
-                      {provider.location} • {provider.distance}
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-green-600">{provider.price}</p>
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline" className="h-8">
-                          <MessageSquare className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white h-8">
-                          <Phone className="w-4 h-4 mr-1" />
-                          Contatar
-                        </Button>
-                      </div>
-                    </div>
+                    <h3 className="font-bold text-lg">{provider.name}</h3>
+                    <p className="text-sm text-gray-600">{provider.profession}</p>
                   </div>
                 </div>
-              </Card>
-            ))}
 
-            {filteredProviders.length === 0 && (
-              <Card className="p-12 text-center">
-                <MapPin className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">Nenhum prestador encontrado</p>
-                <p className="text-gray-400 text-sm mt-2">Tente ajustar os filtros de busca</p>
-              </Card>
-            )}
-          </div>
+                {/* Rating */}
+                <div className="flex items-center space-x-1 mb-2">
+                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                  <span className="font-semibold text-sm">{provider.rating}</span>
+                  <span className="text-xs text-gray-500">({provider.reviews})</span>
+                </div>
+
+                {/* Distance */}
+                <p className="text-sm text-gray-600 mb-3">📍 {provider.distance}</p>
+
+                {/* Contact Button */}
+                <Button className="w-full bg-green-500 hover:bg-green-600 text-white">
+                  Contatar
+                </Button>
+              </div>
+            </Card>
+          ))}
         </div>
-      </div>
 
-      {/* Location Modal */}
-      <Dialog open={showLocationModal} onOpenChange={setShowLocationModal}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Adicionar Localização</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                Digite seu endereço
-              </label>
-              <Input
-                placeholder="Ex: Rua das Flores, 123, Jataí - GO"
-                value={locationInput}
-                onChange={(e) => setLocationInput(e.target.value)}
-                className="w-full"
-              />
-              <p className="text-xs text-gray-500 mt-2">
-                O endereço será usado para encontrar prestadores próximos a você
-              </p>
-            </div>
-            
-            <div className="flex space-x-2">
-              <Button 
-                variant="outline" 
-                className="flex-1"
-                onClick={() => setShowLocationModal(false)}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                className="flex-1 bg-green-600 hover:bg-green-700"
-                onClick={handleSaveLocation}
-              >
-                Salvar Localização
-              </Button>
-            </div>
-            
-            <div className="pt-2 border-t">
-              <Button
-                variant="ghost"
-                className="w-full text-green-600"
-                onClick={() => {
-                  setShowLocationModal(false);
-                  // Trigger location detection
-                  if (navigator.geolocation) {
-                    setIsGettingLocation(true);
-                    navigator.geolocation.getCurrentPosition(
-                      async (position) => {
-                        const { latitude, longitude } = position.coords;
-                        const location = { lat: latitude, lng: longitude };
-                        setUserLocation(location);
-                        setMapCenter(location);
-                        
-                        try {
-                          const response = await fetch(
-                            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyDUxe-HLztnRiQ8mFew15NCs2TWBUJ8Jl0`
-                          );
-                          const data = await response.json();
-                          if (data.results && data.results[0]) {
-                            setLocationInput(data.results[0].formatted_address);
-                          }
-                        } catch (err) {
-                          console.error('Erro ao obter endereço:', err);
-                        }
-                        
-                        setIsGettingLocation(false);
-                        alert('✓ Localização atualizada com sucesso!');
-                      },
-                      (error) => {
-                        setIsGettingLocation(false);
-                        alert('Não foi possível obter sua localização.');
-                      }
-                    );
-                  }
-                }}
-                disabled={isGettingLocation}
-              >
-                {isGettingLocation ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Obtendo localização...
-                  </>
-                ) : (
-                  <>
-                    <Navigation className="w-4 h-4 mr-2" />
-                    Ou usar localização automática
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+        {filteredProviders.length === 0 && (
+          <Card className="p-12 text-center">
+            <p className="text-gray-500 text-lg">Nenhum prestador encontrado</p>
+            <p className="text-gray-400 text-sm mt-2">Tente aumentar o raio de busca ou mudar a categoria</p>
+          </Card>
+        )}
+      </div>
     </div>
   );
 };

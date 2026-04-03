@@ -360,8 +360,7 @@ const Abonamento = () => {
                       </Button>
                     </div>
                     <p className="text-xs text-gray-600 mt-2">
-                      <strong>Beneficiário:</strong> JONHSON DE SOUSA CARVALHO<br />
-                      <strong>CNPJ:</strong> 51.965.652<br />
+                      <strong>Beneficiário:</strong> SERVIVIZINHOS<br />
                       <strong>Instituição:</strong> NU PAGAMENTOS - IP
                     </p>
                   </div>

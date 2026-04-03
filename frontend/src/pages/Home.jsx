@@ -96,21 +96,21 @@ const PostCard = ({ post, onRecommend, onRespond }) => {
 
           {/* Display post images - full width like allovoisins */}
           {post.images && post.images.length > 0 && (
-            <div className="mt-3" data-testid={`post-images-${post.id}`}>
+            <div className="mt-3 -mx-3" data-testid={`post-images-${post.id}`}>
               {post.images.length === 1 ? (
                 <img
                   src={post.images[0]}
                   alt="Foto do pedido"
-                  className="w-full max-h-[500px] object-cover rounded-lg border border-gray-200"
+                  className="w-full max-h-[400px] object-contain bg-gray-50"
                 />
               ) : (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2 px-3">
                   {post.images.map((img, idx) => (
                     <img
                       key={idx}
                       src={img}
                       alt={`Foto ${idx + 1}`}
-                      className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                      className="w-full h-48 object-cover rounded-lg"
                     />
                   ))}
                 </div>

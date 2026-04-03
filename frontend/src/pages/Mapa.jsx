@@ -4,7 +4,8 @@ import { Card } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
-import { MapPin, Star, Search, Phone, MessageSquare, Navigation } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { MapPin, Star, Search, Phone, MessageSquare, Navigation, Loader2, MapPinned } from 'lucide-react';
 import { mockProviders, professionCategories } from '../mock/providersData';
 import InteractiveMap from '../components/InteractiveMap';
 
@@ -14,6 +15,9 @@ const Mapa = () => {
   const [selectedProvider, setSelectedProvider] = useState(null);
   const [mapCenter, setMapCenter] = useState({ lat: -17.8814, lng: -51.7144 }); // Jataí, GO
   const [userLocation, setUserLocation] = useState(null);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [locationInput, setLocationInput] = useState('');
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
 
   // Detectar localização do usuário
   useEffect(() => {
@@ -47,21 +51,68 @@ const Mapa = () => {
   };
 
   const useMyLocation = () => {
-    if (userLocation) {
-      setMapCenter(userLocation);
-    } else if (navigator.geolocation) {
+    setIsGettingLocation(true);
+    if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const { latitude, longitude } = position.coords;
           const location = { lat: latitude, lng: longitude };
           setUserLocation(location);
           setMapCenter(location);
+          
+          // Get address from coordinates
+          try {
+            const response = await fetch(
+              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyDUxe-HLztnRiQ8mFew15NCs2TWBUJ8Jl0`
+            );
+            const data = await response.json();
+            if (data.results && data.results[0]) {
+              setLocationInput(data.results[0].formatted_address);
+            }
+          } catch (err) {
+            console.error('Erro ao obter endereço:', err);
+          }
+          
+          setIsGettingLocation(false);
+          alert('✓ Localização atualizada com sucesso!');
         },
         (error) => {
+          setIsGettingLocation(false);
           alert('Não foi possível obter sua localização. Verifique as permissões do navegador.');
           console.error('Erro ao obter localização:', error);
         }
       );
+    } else {
+      setIsGettingLocation(false);
+      alert('Seu navegador não suporta geolocalização.');
+    }
+  };
+
+  const handleSaveLocation = async () => {
+    if (!locationInput.trim()) {
+      alert('Por favor, insira um endereço.');
+      return;
+    }
+    
+    // Geocode the address to get coordinates
+    try {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(locationInput)}&key=AIzaSyDUxe-HLztnRiQ8mFew15NCs2TWBUJ8Jl0`
+      );
+      const data = await response.json();
+      
+      if (data.results && data.results[0]) {
+        const { lat, lng } = data.results[0].geometry.location;
+        setUserLocation({ lat, lng });
+        setMapCenter({ lat, lng });
+        setShowLocationModal(false);
+        alert('✓ Localização salva com sucesso!');
+      } else {
+        alert('Endereço não encontrado. Tente outro.');
+      }
+    } catch (err) {
+      console.error('Erro ao geocodificar endereço:', err);
+      alert('Erro ao buscar localização. Tente novamente.');
     }
   };
 
@@ -87,9 +138,22 @@ const Mapa = () => {
                 className="pl-10 h-11"
               />
             </div>
-            <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={useMyLocation}>
-              <Navigation className="w-4 h-4 mr-2" />
-              Usar minha localização
+            <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={useMyLocation} disabled={isGettingLocation}>
+              {isGettingLocation ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Obtendo...
+                </>
+              ) : (
+                <>
+                  <Navigation className="w-4 h-4 mr-2" />
+                  Usar minha localização
+                </>
+              )}
+            </Button>
+            <Button variant="outline" onClick={() => setShowLocationModal(true)}>
+              <MapPinned className="w-4 h-4 mr-2" />
+              Adicionar endereço
             </Button>
           </div>
           
@@ -109,9 +173,9 @@ const Mapa = () => {
           </div>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Interactive Map */}
-          <Card className="p-0 h-[500px] lg:h-[600px] overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Interactive Map - 2/3 width */}
+          <Card className="lg:col-span-2 p-0 h-[600px] overflow-hidden">
             <InteractiveMap 
               providers={filteredProviders}
               selectedProvider={selectedProvider}
@@ -120,8 +184,8 @@ const Mapa = () => {
             />
           </Card>
 
-          {/* Providers List */}
-          <div className="space-y-4 lg:h-[600px] overflow-y-auto pr-2">
+          {/* Providers List - 1/3 width */}
+          <div className="space-y-4 h-[600px] overflow-y-auto">
             <div className="mb-4">
               <p className="text-gray-600">
                 <span className="font-semibold">{filteredProviders.length}</span> prestadores encontrados
@@ -190,6 +254,101 @@ const Mapa = () => {
           </div>
         </div>
       </div>
+
+      {/* Location Modal */}
+      <Dialog open={showLocationModal} onOpenChange={setShowLocationModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Localização</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                Digite seu endereço
+              </label>
+              <Input
+                placeholder="Ex: Rua das Flores, 123, Jataí - GO"
+                value={locationInput}
+                onChange={(e) => setLocationInput(e.target.value)}
+                className="w-full"
+              />
+              <p className="text-xs text-gray-500 mt-2">
+                O endereço será usado para encontrar prestadores próximos a você
+              </p>
+            </div>
+            
+            <div className="flex space-x-2">
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => setShowLocationModal(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                className="flex-1 bg-green-600 hover:bg-green-700"
+                onClick={handleSaveLocation}
+              >
+                Salvar Localização
+              </Button>
+            </div>
+            
+            <div className="pt-2 border-t">
+              <Button
+                variant="ghost"
+                className="w-full text-green-600"
+                onClick={() => {
+                  setShowLocationModal(false);
+                  // Trigger location detection
+                  if (navigator.geolocation) {
+                    setIsGettingLocation(true);
+                    navigator.geolocation.getCurrentPosition(
+                      async (position) => {
+                        const { latitude, longitude } = position.coords;
+                        const location = { lat: latitude, lng: longitude };
+                        setUserLocation(location);
+                        setMapCenter(location);
+                        
+                        try {
+                          const response = await fetch(
+                            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyDUxe-HLztnRiQ8mFew15NCs2TWBUJ8Jl0`
+                          );
+                          const data = await response.json();
+                          if (data.results && data.results[0]) {
+                            setLocationInput(data.results[0].formatted_address);
+                          }
+                        } catch (err) {
+                          console.error('Erro ao obter endereço:', err);
+                        }
+                        
+                        setIsGettingLocation(false);
+                        alert('✓ Localização atualizada com sucesso!');
+                      },
+                      (error) => {
+                        setIsGettingLocation(false);
+                        alert('Não foi possível obter sua localização.');
+                      }
+                    );
+                  }
+                }}
+                disabled={isGettingLocation}
+              >
+                {isGettingLocation ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Obtendo localização...
+                  </>
+                ) : (
+                  <>
+                    <Navigation className="w-4 h-4 mr-2" />
+                    Ou usar localização automática
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

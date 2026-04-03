@@ -8,6 +8,7 @@ import Mapa from './pages/Mapa';
 import Mensagens from './pages/Mensagens';
 import Perfil from './pages/Perfil';
 import Abonamento from './pages/Abonamento';
+import Offreurs from './pages/Offreurs';
 import AdminLayout from './layouts/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
 import { Toaster } from './components/ui/toaster';
@@ -35,6 +36,7 @@ function AppRoutes() {
       <Route path="/mensagens" element={<ProtectedRoute><Mensagens /></ProtectedRoute>} />
       <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
       <Route path="/abonamento" element={<ProtectedRoute><Abonamento /></ProtectedRoute>} />
+      <Route path="/offreurs" element={<Offreurs />} />
       
       {/* Admin Routes */}
       <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>

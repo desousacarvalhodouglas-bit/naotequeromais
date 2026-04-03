@@ -15,8 +15,15 @@ const defaultCenter = {
   lng: -51.7144
 };
 
+// Loading options to speed up map loading
+const loadingOptions = {
+  language: 'pt-BR',
+  region: 'BR',
+};
+
 const InteractiveMap = ({ providers, selectedProvider, onMarkerClick, center = defaultCenter }) => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [loadError, setLoadError] = useState(null);
   
   const mapOptions = {
     zoomControl: true,
@@ -24,25 +31,50 @@ const InteractiveMap = ({ providers, selectedProvider, onMarkerClick, center = d
     mapTypeControl: false,
     fullscreenControl: true,
     zoom: 13,
+    gestureHandling: 'greedy',
+    disableDefaultUI: false,
   };
+
+  if (loadError) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-red-50">
+        <div className="text-center p-4">
+          <p className="text-red-600 font-semibold mb-2">Erro ao carregar mapa</p>
+          <p className="text-sm text-gray-600">Recarregue a página para tentar novamente</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <LoadScript 
       googleMapsApiKey={GOOGLE_MAPS_API_KEY}
-      onLoad={() => setIsLoaded(true)}
+      onLoad={() => {
+        setIsLoaded(true);
+        console.log('Google Maps loaded successfully');
+      }}
+      onError={(error) => {
+        setLoadError(error);
+        console.error('Error loading Google Maps:', error);
+      }}
       loadingElement={
-        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+        <div className="w-full h-full flex items-center justify-center bg-gray-50">
           <div className="text-center">
             <Loader2 className="w-12 h-12 text-green-600 animate-spin mx-auto mb-3" />
-            <p className="text-gray-600">Carregando mapa...</p>
+            <p className="text-gray-600 font-medium">Carregando mapa...</p>
+            <p className="text-xs text-gray-500 mt-1">Aguarde alguns instantes</p>
           </div>
         </div>
       }
+      {...loadingOptions}
     >
       <GoogleMap
         mapContainerStyle={mapContainerStyle}
         center={center}
         options={mapOptions}
+        onLoad={(map) => {
+          console.log('Map instance loaded');
+        }}
       >
         {providers.map((provider, index) => (
           <Marker

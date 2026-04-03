@@ -207,7 +207,7 @@ const NewHome = () => {
                 <Search className="w-5 h-5 mr-2" />
                 Preciso de um serviço
               </Button>
-              <Button onClick={() => { setShowCreateAccount(true); resetRegister(); }} variant="outline" className="border-2 border-green-500 text-green-600 hover:bg-green-50 h-14 px-8 text-base">
+              <Button onClick={() => navigate('/offreurs')} variant="outline" className="border-2 border-green-500 text-green-600 hover:bg-green-50 h-14 px-8 text-base">
                 <Wrench className="w-5 h-5 mr-2" />
                 Busco emprego em Goiás
               </Button>

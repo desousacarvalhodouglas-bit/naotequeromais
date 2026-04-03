@@ -72,14 +72,15 @@ const Abonamento = () => {
     setShowPaymentModal(true);
     
     try {
-      // Gerar chave PIX copia e cola (mock para demonstração)
-      // Em produção, isso viria do backend
-      const pixPayload = `00020126580014BR.GOV.BCB.PIX0136johnsonbaby45@hotmail.com5204000053039865802BR5925SERVIVIZINHOS LTDA6009SAO PAULO62070503***63041D3A`;
-      setPixKey(pixPayload);
+      // Chave PIX real: JONHSON DE SOUSA CARVALHO
+      // CNPJ: 51.965.652
+      // Chave: 3ef112O0-bebf-4d88-930c-48e84b11cfc4
+      // Instituição: NU PAGAMENTOS - IP
+      const pixPayload = `00020126580014BR.GOV.BCB.PIX0136${btoa('3ef112O0-bebf-4d88-930c-48e84b11cfc4').substring(0, 32)}5204000053039865802BR5925JONHSON DE SOUSA CARVALHO6015NU PAGAMENTOS-IP62070503***6304${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      setPixKey('3ef112O0-bebf-4d88-930c-48e84b11cfc4');
     } catch (error) {
       console.error('Erro ao gerar PIX:', error);
-      // Fallback com chave PIX simples
-      setPixKey('johnsonbaby45@hotmail.com');
+      setPixKey('3ef112O0-bebf-4d88-930c-48e84b11cfc4');
     }
   };
 
@@ -342,10 +343,10 @@ const Abonamento = () => {
                     Escaneie o código QR ou copie a chave PIX abaixo
                   </p>
                   <div className="bg-white p-3 rounded-lg mb-2">
-                    <p className="text-xs text-gray-500 mb-1">Chave PIX (Email):</p>
+                    <p className="text-xs text-gray-500 mb-1">Chave PIX (UUID):</p>
                     <div className="flex space-x-2">
                       <Input
-                        value={pixKey || 'johnsonbaby45@hotmail.com'}
+                        value={pixKey || '3ef112O0-bebf-4d88-930c-48e84b11cfc4'}
                         readOnly
                         className="text-xs flex-1 font-mono"
                       />
@@ -358,6 +359,11 @@ const Abonamento = () => {
                         <Copy className="w-4 h-4" />
                       </Button>
                     </div>
+                    <p className="text-xs text-gray-600 mt-2">
+                      <strong>Beneficiário:</strong> JONHSON DE SOUSA CARVALHO<br />
+                      <strong>CNPJ:</strong> 51.965.652<br />
+                      <strong>Instituição:</strong> NU PAGAMENTOS - IP
+                    </p>
                   </div>
                   <div className="bg-blue-50 p-3 rounded-lg text-xs text-blue-700">
                     <p className="font-semibold mb-1">📱 Como pagar:</p>

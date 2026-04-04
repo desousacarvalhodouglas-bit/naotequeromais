@@ -145,7 +145,7 @@ const Mensagens = () => {
   const filtered = filter === 'nao-lidas' ? conversations.filter(c => c.unread) : filter === 'arquivadas' ? [] : conversations;
 
   return (
-    <div className="min-h-screen bg-[#FFF5F3] pb-16 md:pb-0">
+    <div className="min-h-screen bg-[#FFF5F3] pb-20 sm:pb-0">
       <Header />
 
       {/* Action Toast */}
@@ -155,43 +155,100 @@ const Mensagens = () => {
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-2 py-2">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-[calc(100vh-80px)] flex overflow-hidden">
+      <div className="max-w-7xl mx-auto px-0 sm:px-2 py-0 sm:py-2">
+        <div className="bg-white sm:rounded-xl sm:shadow-sm sm:border border-gray-100 h-[calc(100vh-80px)] sm:h-[calc(100vh-80px)] flex overflow-hidden">
 
           {/* LEFT - Conversation List */}
-          <div className="w-72 border-r border-gray-200 flex flex-col" data-testid="conversations-list">
-            <div className="flex border-b border-gray-200">
-              {['todas', 'nao-lidas', 'arquivadas'].map(f => (
-                <button key={f} onClick={() => setFilter(f)} data-testid={`filter-${f}`}
-                  className={`flex-1 py-3 text-xs font-medium transition-colors ${filter === f ? 'text-gray-900 border-b-2 border-gray-900 bg-gray-50' : 'text-gray-500 hover:text-gray-700'}`}>
-                  {f === 'todas' ? 'Todas' : f === 'nao-lidas' ? 'Não lidas' : 'Arquivadas'}
+          <div className={`${selectedConvId ? 'hidden sm:flex' : 'flex'} w-full sm:w-72 border-r border-gray-200 flex-col`} data-testid="conversations-list">
+            {/* Mobile Header (Above tabs) */}
+            <div className="sm:hidden bg-white border-b border-gray-200 p-4">
+              <div className="flex items-center justify-between mb-4">
+                <Avatar className="w-12 h-12 border-2 border-gray-200">
+                  <AvatarImage src={user?.avatar} />
+                  <AvatarFallback className="bg-green-100 text-green-700">
+                    {user?.name?.charAt(0) || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <h1 className="text-xl font-bold text-gray-900">Messages</h1>
+                <button className="text-sm font-medium text-gray-700">
+                  Modifier
                 </button>
-              ))}
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative mb-3">
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <Input
+                  type="text"
+                  placeholder="Rechercher"
+                  className="pl-10 h-12 bg-gray-50 border-gray-200 rounded-xl text-sm"
+                />
+              </div>
             </div>
+
+            {/* Filter Tabs */}
+            <div className="flex border-b border-gray-200 bg-white">
+              <div className="sm:hidden flex gap-2 px-4 pb-3 w-full overflow-x-auto">
+                <button onClick={() => setFilter('todas')} data-testid="filter-todas"
+                  className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${filter === 'todas' ? 'bg-gray-900 text-white' : 'bg-white border-2 border-gray-300 text-gray-700'}`}>
+                  Toutes
+                </button>
+                <button onClick={() => setFilter('nao-lidas')} data-testid="filter-nao-lidas"
+                  className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${filter === 'nao-lidas' ? 'bg-gray-900 text-white' : 'bg-white border-2 border-gray-300 text-gray-700'}`}>
+                  Non lues
+                </button>
+                <button onClick={() => setFilter('arquivadas')} data-testid="filter-arquivadas"
+                  className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${filter === 'arquivadas' ? 'bg-gray-900 text-white' : 'bg-white border-2 border-gray-300 text-gray-700'}`}>
+                  Archivées
+                </button>
+              </div>
+
+              <div className="hidden sm:flex w-full">
+                {['todas', 'nao-lidas', 'arquivadas'].map(f => (
+                  <button key={f} onClick={() => setFilter(f)} data-testid={`filter-${f}`}
+                    className={`flex-1 py-3 text-xs font-medium transition-colors ${filter === f ? 'text-gray-900 border-b-2 border-gray-900 bg-gray-50' : 'text-gray-500 hover:text-gray-700'}`}>
+                    {f === 'todas' ? 'Todas' : f === 'nao-lidas' ? 'Não lidas' : 'Arquivadas'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Last Message Indicator (Mobile Only) */}
+            <div className="sm:hidden px-4 py-3 bg-gray-50 text-sm text-gray-600 border-b border-gray-200">
+              Vous : <span className="font-medium">bonjour</span>
+            </div>
+
+            {/* Conversations List */}
             <div className="flex-1 overflow-y-auto">
               {filtered.length === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-8">Nenhuma conversa</p>
               ) : filtered.map(c => (
                 <div key={c.id} onClick={() => setSelectedConvId(c.id)} data-testid={`conv-${c.id}`}
-                  className={`px-3 py-3 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors ${selectedConvId === c.id ? 'bg-blue-50 border-l-2 border-l-blue-500' : ''}`}>
+                  className={`px-4 py-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${selectedConvId === c.id ? 'bg-blue-50 sm:border-l-2 sm:border-l-blue-500' : ''}`}>
                   <div className="flex items-start gap-3">
-                    <Avatar className="w-10 h-10 flex-shrink-0">
+                    <Avatar className="w-14 h-14 sm:w-10 sm:h-10 flex-shrink-0">
                       <AvatarImage src={c.avatar} />
                       <AvatarFallback className="bg-gray-200 text-gray-500 text-sm">{c.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-sm truncate">{c.name}</h4>
-                        <span className="text-xs text-gray-400 flex-shrink-0">{c.date}</span>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-base sm:text-sm truncate">{c.name}</h4>
+                          <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+                            <Star className="w-3 h-3 text-blue-400 fill-blue-400" />
+                            <span>-/{c.rating}</span>
+                          </div>
+                        </div>
+                        <span className="text-xs text-gray-400 flex-shrink-0 whitespace-nowrap">{c.date}</span>
                       </div>
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
-                        <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                        <span>{c.rating}/5 ({c.reviewCount} avis)</span>
+                      <div className="inline-block bg-gray-100 px-2 py-0.5 rounded text-xs text-gray-700 mt-1.5 sm:mt-0.5">
+                        {c.service}
                       </div>
-                      <p className="text-xs text-gray-500 truncate mt-0.5">{c.service}</p>
-                      <p className="text-xs text-gray-400 truncate">{c.lastMessage}</p>
+                      <p className="text-sm text-gray-600 truncate mt-1.5 sm:mt-0.5">{c.lastMessage}</p>
                     </div>
-                    {c.unread && <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2" />}
+                    {c.unread && <div className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0 mt-2 sm:mt-1" />}
                   </div>
                 </div>
               ))}
@@ -199,26 +256,36 @@ const Mensagens = () => {
           </div>
 
           {/* CENTER - Chat Area */}
-          <div className="flex-1 flex flex-col" data-testid="chat-area">
+          <div className={`${selectedConvId ? 'flex' : 'hidden sm:flex'} flex-1 flex-col w-full`} data-testid="chat-area">
             {conv ? (
               <>
                 {/* Chat Header */}
-                <div className="px-4 py-3 border-b border-gray-200 flex items-center gap-3">
-                  <Avatar className="w-8 h-8">
+                <div className="px-3 sm:px-4 py-3 border-b border-gray-200 flex items-center gap-3">
+                  {/* Back Button (Mobile Only) */}
+                  <button 
+                    onClick={() => setSelectedConvId(null)} 
+                    className="sm:hidden p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  <Avatar className="w-8 h-8 sm:w-10 sm:h-10">
                     <AvatarImage src={conv.avatar} />
                     <AvatarFallback>{conv.name.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <div>
-                    <h3 className="font-semibold text-sm">{conv.name}</h3>
-                    <p className="text-xs text-gray-500">{conv.service}</p>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-sm sm:text-base truncate">{conv.name}</h3>
+                    <p className="text-xs text-gray-500 truncate">{conv.service}</p>
                   </div>
                   {conv.status === 'declined' && (
-                    <span className="ml-auto text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">Recusado</span>
+                    <span className="ml-auto text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full whitespace-nowrap">Recusado</span>
                   )}
                 </div>
 
                 {/* Messages */}
-                <div className="flex-1 p-4 overflow-y-auto bg-white">
+                <div className="flex-1 p-3 sm:p-4 overflow-y-auto bg-white">
                   {conv.messages.length === 0 && (
                     <p className="text-center text-sm text-gray-400 mt-8">Nenhuma mensagem ainda. Inicie a conversa!</p>
                   )}
@@ -313,21 +380,21 @@ const Mensagens = () => {
                 )}
 
                 {/* Message Input */}
-                <div className="px-4 py-3 border-t border-gray-200 bg-white">
+                <div className="px-3 sm:px-4 py-3 border-t border-gray-200 bg-white">
                   <div className="flex items-center gap-2">
-                    <button className="text-gray-400 hover:text-gray-600" onClick={() => fileInputRef.current?.click()} data-testid="attach-file-btn">
+                    <button className="text-gray-400 hover:text-gray-600 flex-shrink-0" onClick={() => fileInputRef.current?.click()} data-testid="attach-file-btn">
                       <Paperclip className="w-5 h-5" />
                     </button>
-                    <button className="text-gray-400 hover:text-gray-600" onClick={() => fileInputRef.current?.click()} data-testid="attach-photo-btn">
+                    <button className="text-gray-400 hover:text-gray-600 flex-shrink-0 hidden sm:block" onClick={() => fileInputRef.current?.click()} data-testid="attach-photo-btn">
                       <Camera className="w-5 h-5" />
                     </button>
                     <input type="file" accept="image/*" ref={fileInputRef} className="hidden" onChange={handlePhotoAttach} />
                     <Input data-testid="message-input" placeholder="Sua mensagem" value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                      className="flex-1 h-10 rounded-full border-gray-200" />
+                      className="flex-1 h-10 sm:h-10 rounded-full border-gray-200 text-sm" />
                     <Button data-testid="send-message-btn" onClick={handleSend} size="sm"
-                      className="bg-green-500 hover:bg-green-600 rounded-full w-10 h-10 p-0">
+                      className="bg-green-500 hover:bg-green-600 rounded-full w-10 h-10 p-0 flex-shrink-0">
                       <Send className="w-4 h-4" />
                     </Button>
                   </div>

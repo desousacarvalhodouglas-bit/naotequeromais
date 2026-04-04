@@ -9,6 +9,8 @@ class UserBase(BaseModel):
     location: str = "Brasil"
     phone: Optional[str] = None
     account_type: str = "particular"  # particular, autonomo, empresa
+    isPremium: bool = False
+    posts_count: int = 0
 
 class UserCreate(UserBase):
     password: str

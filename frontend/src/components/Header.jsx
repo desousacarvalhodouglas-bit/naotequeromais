@@ -1,9 +1,10 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from './ui/button';
-import { Bell, MessageSquare, Menu } from 'lucide-react';
+import { Bell, MessageSquare, Menu, MapPin } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import BottomNav from './BottomNav';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -117,6 +118,40 @@ const Header = () => {
           </div>
         </div>
       </div>
+
+      {/* Mobile Header */}
+      <div className="sm:hidden bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="px-4 py-3">
+          {/* Logo and Location */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/feed')}>
+              <div className="w-8 h-8 bg-gradient-to-br from-pink-400 to-green-400 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                S
+              </div>
+              <div className="flex flex-col leading-tight">
+                <span className="text-base font-bold">
+                  <span className="text-pink-500">servi</span>
+                  <span className="text-green-500">vizinhos</span>
+                </span>
+              </div>
+            </div>
+            
+            <button className="relative p-2">
+              <Bell className="w-5 h-5 text-gray-600" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+          </div>
+
+          {/* Location Badge */}
+          <div className="flex items-center gap-1.5 text-xs text-gray-600 bg-gray-50 px-3 py-1.5 rounded-full w-fit">
+            <MapPin className="w-3 h-3" />
+            <span>Jataí, Goiás</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Navigation for Mobile */}
+      <BottomNav />
     </header>
   );
 };

@@ -314,7 +314,20 @@ const Home = () => {
       setPostVideos([]);
     } catch (err) {
       console.error('Error creating post:', err);
-      alert('Erro ao publicar pedido. Tente novamente.');
+      
+      // Check if it's a 403 error (limit reached)
+      if (err.response?.status === 403) {
+        const confirmUpgrade = window.confirm(
+          '⚠️ Você atingiu o limite de 2 posts gratuitos!\n\n' +
+          'Assine o plano Premium para continuar postando sem limites.\n\n' +
+          'Deseja ir para a página de assinatura?'
+        );
+        if (confirmUpgrade) {
+          navigate('/abonamento');
+        }
+      } else {
+        alert('Erro ao publicar pedido. Tente novamente.');
+      }
     }
   };
 
@@ -381,8 +394,8 @@ const Home = () => {
       )}
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 py-2 sm:py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-4">
 
           {/* Left Column - Feed */}
           <div className="lg:col-span-2">
@@ -392,8 +405,8 @@ const Home = () => {
               ))}
             </div>
 
-            {/* Themed Categories */}
-            <div className="mt-6 mb-4">
+            {/* Themed Categories - Hidden on mobile */}
+            <div className="mt-6 mb-4 hidden sm:block">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-lg">&#127912;</span>
                 <h3 className="font-bold text-base">Temáticas do momento</h3>
@@ -422,8 +435,8 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Right Column - Sidebar */}
-          <div className="space-y-4">
+          {/* Right Column - Sidebar - Hidden on mobile */}
+          <div className="space-y-4 hidden lg:block">
             {/* Post Form Card */}
             <Card className="p-4" data-testid="post-form-card">
               <textarea
@@ -501,6 +514,31 @@ const Home = () => {
                   data-testid="post-address-input"
                 />
               </div>
+
+              {/* Posts limit indicator */}
+              {user && !user.isPremium && (
+                <div className="mt-3 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-semibold text-yellow-800">
+                      Posts Gratuitos
+                    </span>
+                    <span className="text-xs font-bold text-yellow-900">
+                      {user.posts_count || 0}/2
+                    </span>
+                  </div>
+                  <div className="w-full bg-yellow-200 rounded-full h-2">
+                    <div 
+                      className="bg-yellow-600 h-2 rounded-full transition-all"
+                      style={{ width: `${((user.posts_count || 0) / 2) * 100}%` }}
+                    />
+                  </div>
+                  {(user.posts_count || 0) >= 2 && (
+                    <p className="text-xs text-yellow-800 mt-2">
+                      ⚠️ Limite atingido. <button onClick={() => navigate('/abonamento')} className="underline font-semibold">Assine Premium</button> para continuar
+                    </p>
+                  )}
+                </div>
+              )}
 
               <Button
                 onClick={handlePublish}

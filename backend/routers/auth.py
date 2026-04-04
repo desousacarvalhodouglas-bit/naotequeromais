@@ -57,6 +57,8 @@ async def register(user_data: UserCreate):
         phone=created_user.get("phone"),
         account_type=created_user.get("account_type", "particular"),
         avatar=created_user.get("avatar"),
+        isPremium=created_user.get("isPremium", False),
+        posts_count=created_user.get("posts_count", 0),
         created_at=created_user["created_at"]
     )
     
@@ -92,6 +94,8 @@ async def login(email: str, password: str):
         phone=user.get("phone"),
         account_type=user.get("account_type", "particular"),
         avatar=user.get("avatar"),
+        isPremium=user.get("isPremium", False),
+        posts_count=user.get("posts_count", 0),
         created_at=user["created_at"]
     )
     
@@ -117,3 +121,25 @@ async def get_current_user(user_id: str = Depends(get_current_user_id)):
         avatar=user.get("avatar"),
         created_at=user["created_at"]
     )
+
+@router.post("/reset-password")
+async def reset_password(email: str, new_password: str):
+    """Reset password directly without email verification."""
+    db = get_db()
+    
+    # Find user by email
+    user = await db.users.find_one({"email": email})
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Email não encontrado"
+        )
+    
+    # Update password
+    new_password_hash = get_password_hash(new_password)
+    await db.users.update_one(
+        {"_id": user["_id"]},
+        {"$set": {"password_hash": new_password_hash, "updated_at": datetime.utcnow()}}
+    )
+    
+    return {"message": "Senha atualizada com sucesso", "email": email}

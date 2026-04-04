@@ -7,8 +7,7 @@ import { Label } from '../components/ui/label';
 import { Slider } from '../components/ui/slider';
 import { Checkbox } from '../components/ui/checkbox';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { ArrowLeft, MapPin, CreditCard, Smartphone, Check, Copy } from 'lucide-react';
+import { ArrowLeft, MapPin, Smartphone, Check, Copy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import axios from 'axios';
@@ -94,7 +93,7 @@ const Abonamento = () => {
       // Enviar confirmação ao backend
       await axios.post(`${BACKEND_URL}/api/payments/confirm`, {
         planId: selectedPlan,
-        paymentMethod,
+        paymentMethod: 'pix',
         amount: currentPlan.price
       });
       
@@ -311,95 +310,60 @@ const Abonamento = () => {
               </div>
             </div>
 
-            <Tabs value={paymentMethod} onValueChange={setPaymentMethod}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="pix">
-                  <Smartphone className="w-4 h-4 mr-2" />
-                  PIX
-                </TabsTrigger>
-                <TabsTrigger value="card">
-                  <CreditCard className="w-4 h-4 mr-2" />
-                  Cartão
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="pix" className="space-y-3">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="w-48 h-48 bg-white mx-auto mb-3 rounded-lg flex items-center justify-center border-2 border-gray-200 p-2">
-                    {pixKey ? (
-                      <QRCodeSVG 
-                        value={pixKey} 
-                        size={176}
-                        level="M"
-                        includeMargin={false}
-                      />
-                    ) : (
-                      <div className="text-center">
-                        <span className="text-xs text-gray-500">Gerando QR Code...</span>
-                      </div>
-                    )}
+            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+              <h3 className="font-semibold text-center mb-3">Pagamento via PIX</h3>
+              <div className="w-48 h-48 bg-white mx-auto mb-3 rounded-lg flex items-center justify-center border-2 border-gray-200 p-2">
+                {pixKey ? (
+                  <QRCodeSVG 
+                    value={pixKey} 
+                    size={176}
+                    level="M"
+                    includeMargin={false}
+                  />
+                ) : (
+                  <div className="text-center">
+                    <span className="text-xs text-gray-500">Gerando QR Code...</span>
                   </div>
-                  <p className="text-xs text-gray-600 text-center mb-2 font-medium">
-                    Escaneie o código QR ou copie a chave PIX abaixo
-                  </p>
-                  <div className="bg-white p-3 rounded-lg mb-2">
-                    <p className="text-xs text-gray-500 mb-1">Chave PIX (UUID):</p>
-                    <div className="flex space-x-2">
-                      <Input
-                        value={pixKey || '3ef112O0-bebf-4d88-930c-48e84b11cfc4'}
-                        readOnly
-                        className="text-xs flex-1 font-mono"
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={copyPixKey}
-                        className="px-3"
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    <p className="text-xs text-gray-600 mt-2">
-                      <strong>Beneficiário:</strong> SERVIVIZINHOS<br />
-                      <strong>Instituição:</strong> NU PAGAMENTOS - IP
-                    </p>
-                  </div>
-                  <div className="bg-blue-50 p-3 rounded-lg text-xs text-blue-700">
-                    <p className="font-semibold mb-1">📱 Como pagar:</p>
-                    <ol className="list-decimal list-inside space-y-1 text-xs">
-                      <li>Abra o app do seu banco</li>
-                      <li>Escolha pagar com PIX</li>
-                      <li>Escaneie o QR Code ou cole a chave</li>
-                      <li>Confirme o pagamento de R$ {currentPlan.price.toFixed(2)}</li>
-                    </ol>
-                  </div>
-                  <p className="text-xs text-green-600 mt-3 text-center font-medium">
-                    ✓ Pagamento confirmado automaticamente em até 5 minutos
-                  </p>
+                )}
+              </div>
+              <p className="text-xs text-gray-600 text-center mb-2 font-medium">
+                Escaneie o código QR ou copie a chave PIX abaixo
+              </p>
+              <div className="bg-white p-3 rounded-lg mb-2">
+                <p className="text-xs text-gray-500 mb-1">Chave PIX (UUID):</p>
+                <div className="flex space-x-2">
+                  <Input
+                    value={pixKey || '3ef112O0-bebf-4d88-930c-48e84b11cfc4'}
+                    readOnly
+                    className="text-xs flex-1 font-mono"
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={copyPixKey}
+                    className="px-3"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
                 </div>
-              </TabsContent>
-
-              <TabsContent value="card" className="space-y-3">
-                <div>
-                  <Label className="text-sm">Número do Cartão</Label>
-                  <Input placeholder="0000 0000 0000 0000" className="h-9" />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-sm">Validade</Label>
-                    <Input placeholder="MM/AA" className="h-9" />
-                  </div>
-                  <div>
-                    <Label className="text-sm">CVV</Label>
-                    <Input placeholder="123" type="password" maxLength={3} className="h-9" />
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-sm">Nome no Cartão</Label>
-                  <Input placeholder="NOME COMPLETO" className="h-9" />
-                </div>
-              </TabsContent>
-            </Tabs>
+                <p className="text-xs text-gray-600 mt-2">
+                  <strong>Beneficiário:</strong> SERVIVIZINHOS<br />
+                  <strong>Instituição:</strong> NU PAGAMENTOS - IP
+                </p>
+              </div>
+              <div className="bg-blue-50 p-3 rounded-lg text-xs text-blue-700">
+                <p className="font-semibold mb-1">📱 Como pagar:</p>
+                <ol className="list-decimal list-inside space-y-1 text-xs">
+                  <li>Abra o app do seu banco</li>
+                  <li>Escolha pagar com PIX</li>
+                  <li>Escaneie o QR Code ou cole a chave</li>
+                  <li>Confirme o pagamento de R$ {currentPlan.price.toFixed(2)}</li>
+                </ol>
+              </div>
+              <p className="text-xs text-green-600 mt-3 text-center font-medium">
+                ✓ Pagamento confirmado automaticamente em até 5 minutos
+              </p>
+            </div>
 
             <Button
               onClick={handleConfirmPayment}

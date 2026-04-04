@@ -12,6 +12,11 @@ const NewHome = () => {
   const { login, register } = useAuth();
   const [showCreateAccount, setShowCreateAccount] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [forgotPasswordStep, setForgotPasswordStep] = useState(1); // 1: email, 2: new password, 3: success
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [language, setLanguage] = useState('PT');
   const [step, setStep] = useState(1);
   const [accountType, setAccountType] = useState('');
@@ -151,6 +156,67 @@ const NewHome = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleForgotPassword = async () => {
+    if (forgotPasswordStep === 1) {
+      // Step 1: Validate email
+      if (!forgotPasswordEmail) {
+        setError('Digite seu email');
+        return;
+      }
+      setIsLoading(true);
+      setError('');
+      try {
+        // Proceed to step 2 without backend check
+        setForgotPasswordStep(2);
+      } catch (err) {
+        setError('Erro inesperado');
+      } finally {
+        setIsLoading(false);
+      }
+    } else if (forgotPasswordStep === 2) {
+      // Step 2: Set new password
+      if (!newPassword || !confirmPassword) {
+        setError('Preencha todos os campos');
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        setError('As senhas não coincidem');
+        return;
+      }
+      if (newPassword.length < 6) {
+        setError('A senha deve ter pelo menos 6 caracteres');
+        return;
+      }
+      
+      setIsLoading(true);
+      setError('');
+      try {
+        const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/auth/reset-password?email=${forgotPasswordEmail}&new_password=${newPassword}`, {
+          method: 'POST',
+        });
+        
+        if (response.ok) {
+          setForgotPasswordStep(3);
+        } else {
+          const data = await response.json();
+          setError(data.detail || 'Erro ao resetar senha');
+        }
+      } catch (err) {
+        setError('Erro ao resetar senha. Tente novamente.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const resetForgotPassword = () => {
+    setForgotPasswordEmail('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setForgotPasswordStep(1);
+    setError('');
   };
 
   const selectAccountType = (type) => {
@@ -368,10 +434,10 @@ const NewHome = () => {
 
       {/* MULTI-STEP REGISTER MODAL */}
       <Dialog open={showCreateAccount} onOpenChange={(open) => { setShowCreateAccount(open); if (!open) resetRegister(); }}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto p-0">
+        <DialogContent className="max-w-md w-full mx-4 sm:mx-auto max-h-[90vh] overflow-y-auto p-0">
           <DialogTitle className="sr-only">Criar conta</DialogTitle>
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
+          <div className="p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
               {step > 1 ? (
                 <button onClick={() => { setStep(1); setError(''); }} className="text-gray-600 hover:text-gray-900">
                   <ArrowLeft className="w-5 h-5" />
@@ -381,14 +447,14 @@ const NewHome = () => {
 
             {step === 1 && (
               <>
-                <h2 className="text-xl font-bold text-center mb-8">
+                <h2 className="text-lg sm:text-xl font-bold text-center mb-6 sm:mb-8">
                   Me inscrevo como:
                 </h2>
 
                 <div className="space-y-3 mb-6">
                   <button
                     onClick={() => selectAccountType('particular')}
-                    className="w-full flex items-center justify-center gap-3 h-14 border-2 border-gray-200 rounded-xl text-base font-medium hover:border-green-500 hover:bg-green-50 transition-all"
+                    className="w-full flex items-center justify-center gap-3 h-12 sm:h-14 border-2 border-gray-200 rounded-xl text-sm sm:text-base font-medium hover:border-green-500 hover:bg-green-50 transition-all"
                   >
                     <User className="w-5 h-5" />
                     Particular
@@ -404,68 +470,68 @@ const NewHome = () => {
                 <div className="space-y-3">
                   <button
                     onClick={() => selectAccountType('autonomo')}
-                    className="w-full flex items-center justify-center gap-3 h-14 border-2 border-gray-200 rounded-xl text-base font-medium hover:border-green-500 hover:bg-green-50 transition-all"
+                    className="w-full flex items-center justify-center gap-3 h-12 sm:h-14 border-2 border-gray-200 rounded-xl text-sm sm:text-base font-medium hover:border-green-500 hover:bg-green-50 transition-all"
                   >
                     <Briefcase className="w-5 h-5" />
                     Autônomo
                   </button>
                   <button
                     onClick={() => selectAccountType('empresa')}
-                    className="w-full flex items-center justify-center gap-3 h-14 border-2 border-gray-200 rounded-xl text-base font-medium hover:border-green-500 hover:bg-green-50 transition-all"
+                    className="w-full flex items-center justify-center gap-3 h-12 sm:h-14 border-2 border-gray-200 rounded-xl text-sm sm:text-base font-medium hover:border-green-500 hover:bg-green-50 transition-all"
                   >
                     <Building2 className="w-5 h-5" />
                     Empresa
                   </button>
                 </div>
 
-                <p className="text-center text-sm text-gray-400 mt-8">Etapa 1/2</p>
+                <p className="text-center text-sm text-gray-400 mt-6 sm:mt-8">Etapa 1/2</p>
               </>
             )}
 
             {step === 2 && (
               <>
-                <h2 className="text-xl font-bold text-center mb-6">Criar conta</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-center mb-4 sm:mb-6">Criar conta</h2>
 
                 {error && (
-                  <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg mb-4">{error}</div>
+                  <div className="bg-red-50 text-red-600 text-xs sm:text-sm p-2 sm:p-3 rounded-lg mb-4">{error}</div>
                 )}
 
                 {/* Avatar Upload */}
-                <div className="flex justify-center mb-6">
+                <div className="flex justify-center mb-4 sm:mb-6">
                   <div className="relative">
-                    <div className="w-24 h-24 rounded-full bg-gray-100 border-2 border-gray-200 overflow-hidden flex items-center justify-center">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-100 border-2 border-gray-200 overflow-hidden flex items-center justify-center">
                       {avatarPreview ? (
                         <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
                       ) : (
-                        <User className="w-12 h-12 text-gray-400" />
+                        <User className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400" />
                       )}
                     </div>
-                    <label className="absolute bottom-0 right-0 bg-green-600 text-white rounded-full p-2 cursor-pointer hover:bg-green-700 transition-colors">
+                    <label className="absolute bottom-0 right-0 bg-green-600 text-white rounded-full p-1.5 sm:p-2 cursor-pointer hover:bg-green-700 transition-colors">
                       <input
                         type="file"
                         accept="image/*"
                         onChange={handleAvatarChange}
                         className="hidden"
                       />
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                     </label>
                   </div>
                 </div>
-                <p className="text-center text-xs text-gray-500 mb-4">Adicione uma foto de perfil (opcional)</p>
+                <p className="text-center text-xs text-gray-500 mb-3 sm:mb-4">Adicione uma foto de perfil (opcional)</p>
 
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   {accountType === 'particular' && (
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <Label className="text-xs text-gray-500">Nome</Label>
                         <Input
                           placeholder="Nome"
                           value={registerData.name}
                           onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
-                          className="h-12 border-gray-300"
+                          className="h-10 sm:h-12 border-gray-300 text-sm"
                         />
                       </div>
                       <div>
@@ -474,7 +540,7 @@ const NewHome = () => {
                           placeholder="Sobrenome"
                           value={registerData.lastName}
                           onChange={(e) => setRegisterData({ ...registerData, lastName: e.target.value })}
-                          className="h-12 border-gray-300"
+                          className="h-10 sm:h-12 border-gray-300 text-sm"
                         />
                       </div>
                     </div>
@@ -487,20 +553,20 @@ const NewHome = () => {
                         placeholder="Nome comercial"
                         value={registerData.commercialName}
                         onChange={(e) => setRegisterData({ ...registerData, commercialName: e.target.value })}
-                        className="h-12 border-gray-300"
+                        className="h-10 sm:h-12 border-gray-300 text-sm"
                       />
                     </div>
                   )}
 
                   {accountType === 'empresa' && (
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
                         <Label className="text-xs text-gray-500">Nome do dirigente</Label>
                         <Input
                           placeholder="Nome"
                           value={registerData.name}
                           onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
-                          className="h-12 border-gray-300"
+                          className="h-10 sm:h-12 border-gray-300 text-sm"
                         />
                       </div>
                       <div>
@@ -509,7 +575,7 @@ const NewHome = () => {
                           placeholder="Sobrenome"
                           value={registerData.lastName}
                           onChange={(e) => setRegisterData({ ...registerData, lastName: e.target.value })}
-                          className="h-12 border-gray-300"
+                          className="h-10 sm:h-12 border-gray-300 text-sm"
                         />
                       </div>
                     </div>
@@ -521,7 +587,7 @@ const NewHome = () => {
                       placeholder="Profissão"
                       value={registerData.profession}
                       onChange={(e) => setRegisterData({ ...registerData, profession: e.target.value })}
-                      className="h-12 border-gray-300"
+                      className="h-10 sm:h-12 border-gray-300 text-sm"
                     />
                   </div>
 
@@ -531,7 +597,7 @@ const NewHome = () => {
                       placeholder="Endereço postal"
                       value={registerData.location}
                       onChange={(e) => setRegisterData({ ...registerData, location: e.target.value })}
-                      className="h-12 border-gray-300"
+                      className="h-10 sm:h-12 border-gray-300 text-sm"
                     />
                   </div>
 
@@ -541,7 +607,7 @@ const NewHome = () => {
                       placeholder="Celular"
                       value={registerData.phone}
                       onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
-                      className="h-12 border-gray-300"
+                      className="h-10 sm:h-12 border-gray-300 text-sm"
                     />
                   </div>
 
@@ -552,7 +618,7 @@ const NewHome = () => {
                       placeholder="E-mail"
                       value={registerData.email}
                       onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                      className="h-12 border-gray-300"
+                      className="h-10 sm:h-12 border-gray-300 text-sm"
                       required
                     />
                   </div>
@@ -564,10 +630,10 @@ const NewHome = () => {
                       placeholder="Senha"
                       value={registerData.password}
                       onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                      className="h-12 border-gray-300 pr-10"
+                      className="h-10 sm:h-12 border-gray-300 pr-10 text-sm"
                       required
                     />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-8">
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-7 sm:top-8">
                       {showPassword ? <EyeOff className="w-4 h-4 text-gray-400" /> : <Eye className="w-4 h-4 text-gray-400" />}
                     </button>
                   </div>
@@ -594,7 +660,7 @@ const NewHome = () => {
                   <Button
                     onClick={handleRegister}
                     disabled={isLoading}
-                    className="w-full bg-gray-900 hover:bg-gray-800 text-white h-14 text-base mt-2"
+                    className="w-full bg-gray-900 hover:bg-gray-800 text-white h-12 sm:h-14 text-sm sm:text-base mt-2"
                   >
                     {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Inscrever-me'}
                   </Button>
@@ -603,7 +669,7 @@ const NewHome = () => {
                 <p className="text-center text-sm text-gray-400 mt-4">Etapa 2/2</p>
 
                 <div className="text-center mt-3">
-                  <button onClick={() => { setShowCreateAccount(false); setShowLogin(true); setError(''); resetRegister(); }} className="text-sm text-green-600 hover:underline">
+                  <button onClick={() => { setShowCreateAccount(false); setShowLogin(true); setError(''); resetRegister(); }} className="text-xs sm:text-sm text-green-600 hover:underline">
                     Já tem conta? Entrar
                   </button>
                 </div>
@@ -653,7 +719,15 @@ const NewHome = () => {
               </Button>
             </form>
             <div className="text-center mt-4">
-              <button className="text-sm text-gray-500 hover:underline">
+              <button 
+                type="button"
+                onClick={() => { 
+                  setShowLogin(false); 
+                  setShowForgotPassword(true); 
+                  resetForgotPassword();
+                }} 
+                className="text-sm text-gray-500 hover:underline"
+              >
                 Esqueceu a senha?
               </button>
             </div>
@@ -662,6 +736,135 @@ const NewHome = () => {
                 Não tem conta? Criar conta
               </button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* FORGOT PASSWORD MODAL */}
+      <Dialog open={showForgotPassword} onOpenChange={(open) => { if (!isLoading) { setShowForgotPassword(open); if (!open) resetForgotPassword(); } }}>
+        <DialogContent className="max-w-md">
+          <DialogTitle className="sr-only">Recuperar senha</DialogTitle>
+          <div className="p-6">
+            {forgotPasswordStep === 1 && (
+              <>
+                <h2 className="text-2xl font-bold text-center mb-4">Recuperar Senha</h2>
+                <p className="text-sm text-gray-600 text-center mb-6">
+                  Digite seu email cadastrado para criar uma nova senha
+                </p>
+                {error && (
+                  <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg mb-4">{error}</div>
+                )}
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-xs text-gray-500">E-mail</Label>
+                    <Input
+                      type="email"
+                      placeholder="seu@email.com"
+                      className="h-12"
+                      value={forgotPasswordEmail}
+                      onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleForgotPassword} 
+                    disabled={isLoading}
+                    className="w-full bg-gray-900 hover:bg-gray-800 h-12"
+                  >
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Continuar'}
+                  </Button>
+                </div>
+                <div className="text-center mt-4">
+                  <button 
+                    onClick={() => { 
+                      setShowForgotPassword(false); 
+                      setShowLogin(true); 
+                      resetForgotPassword(); 
+                    }} 
+                    className="text-sm text-green-600 hover:underline"
+                  >
+                    Voltar para o login
+                  </button>
+                </div>
+              </>
+            )}
+
+            {forgotPasswordStep === 2 && (
+              <>
+                <h2 className="text-2xl font-bold text-center mb-4">Nova Senha</h2>
+                <p className="text-sm text-gray-600 text-center mb-6">
+                  Email: <strong>{forgotPasswordEmail}</strong>
+                </p>
+                {error && (
+                  <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg mb-4">{error}</div>
+                )}
+                <div className="space-y-4">
+                  <div className="relative">
+                    <Label className="text-xs text-gray-500">Nova Senha</Label>
+                    <Input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Digite sua nova senha"
+                      className="h-12 pr-10"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      disabled={isLoading}
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => setShowPassword(!showPassword)} 
+                      className="absolute right-3 top-8"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4 text-gray-400" /> : <Eye className="w-4 h-4 text-gray-400" />}
+                    </button>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-gray-500">Confirmar Senha</Label>
+                    <Input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Confirme sua nova senha"
+                      className="h-12"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleForgotPassword} 
+                    disabled={isLoading}
+                    className="w-full bg-gray-900 hover:bg-gray-800 h-12"
+                  >
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Atualizar Senha'}
+                  </Button>
+                </div>
+              </>
+            )}
+
+            {forgotPasswordStep === 3 && (
+              <>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h2 className="text-2xl font-bold mb-3">Senha Atualizada!</h2>
+                  <p className="text-gray-600 mb-6">
+                    Sua senha foi atualizada com sucesso. Agora você pode fazer login com sua nova senha.
+                  </p>
+                  <Button 
+                    onClick={() => { 
+                      setShowForgotPassword(false); 
+                      setShowLogin(true); 
+                      resetForgotPassword();
+                      setLoginData({ email: forgotPasswordEmail, password: '' });
+                    }} 
+                    className="w-full bg-green-600 hover:bg-green-700 h-12"
+                  >
+                    Fazer Login
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>

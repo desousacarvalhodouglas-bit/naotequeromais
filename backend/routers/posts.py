@@ -85,6 +85,16 @@ async def create_post(
             detail="User not found"
         )
     
+    # Check if user has reached free post limit
+    is_premium = user.get("isPremium", False)
+    posts_count = user.get("posts_count", 0)
+    
+    if not is_premium and posts_count >= 2:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Limite de posts gratuitos atingido. Assine o plano Premium para continuar postando."
+        )
+    
     post_dict = post_data.model_dump()
     post_dict["user_id"] = ObjectId(user_id)
     post_dict["likes"] = 0
@@ -94,6 +104,12 @@ async def create_post(
     post_dict["updated_at"] = datetime.utcnow()
     
     result = await db.posts.insert_one(post_dict)
+    
+    # Increment user's post count
+    await db.users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$inc": {"posts_count": 1}}
+    )
     
     created_post = await db.posts.find_one({"_id": result.inserted_id})
     

@@ -1,16 +1,25 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { Card } from '../components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { MapPin, Star, Calendar, Users, CheckCircle, XCircle, Flag } from 'lucide-react';
+import { MapPin, Star, Calendar, Users, CheckCircle, XCircle, Flag, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Perfil = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('presentation');
+
+  const handleLogout = () => {
+    if (window.confirm('Tem certeza que deseja sair?')) {
+      logout();
+      navigate('/');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#F5F8FA]">
@@ -49,6 +58,18 @@ const Perfil = () => {
                 <span>{user?.location || 'Localização não informada'}</span>
               </div>
             </div>
+
+            {/* Logout Button - Mobile and Desktop */}
+            <Button 
+              onClick={handleLogout}
+              variant="destructive"
+              size="sm"
+              className="ml-2"
+            >
+              <LogOut className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Sair</span>
+            </Button>
+
             <Button variant="outline" className="text-red-500 border-red-200 hover:bg-red-50">
               <Flag className="w-4 h-4 mr-2" />
               Denunciar perfil

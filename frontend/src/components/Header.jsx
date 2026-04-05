@@ -119,6 +119,7 @@ const Header = () => {
             </button>
           </div>
         </div>
+        </div>
       </header>
 
       {/* Mobile Header */}

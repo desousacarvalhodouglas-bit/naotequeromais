@@ -163,14 +163,8 @@ const Mensagens = () => {
             {/* Mobile Header (Above tabs) */}
             <div className="sm:hidden bg-white border-b border-gray-200 p-4">
               <div className="flex items-center justify-between mb-4">
-                <Avatar className="w-12 h-12 border-2 border-gray-200">
-                  <AvatarImage src={user?.avatar} />
-                  <AvatarFallback className="bg-green-100 text-green-700">
-                    {user?.name?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <h1 className="text-xl font-bold text-gray-900">Messages</h1>
-                <button className="text-sm font-medium text-gray-700">
+                <h1 className="text-xl font-bold text-gray-900 mx-auto">Messages</h1>
+                <button className="text-sm font-medium text-gray-700 absolute right-4">
                   Modifier
                 </button>
               </div>

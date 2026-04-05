@@ -22,9 +22,11 @@ const Header = () => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+    <>
+      {/* Desktop Header */}
+      <header className="hidden sm:block bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2 cursor-pointer" onClick={() => navigate('/feed')}>
             <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-green-400 rounded-lg flex items-center justify-center text-white font-bold">
@@ -117,7 +119,7 @@ const Header = () => {
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Mobile Header */}
       <div className="sm:hidden bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -152,7 +154,7 @@ const Header = () => {
 
       {/* Bottom Navigation for Mobile */}
       <BottomNav />
-    </header>
+    </>
   );
 };
 
